@@ -1,0 +1,12 @@
+[project]
+name = "diy-catalog-cli"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.2.1",
+    "fpdf2>=2.8.3",
+    "pillow>=11.2.1",
+    "qrcode>=8.2",
+]
