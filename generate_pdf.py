@@ -6,13 +6,14 @@ import click
 
 FONT_PATH = "./fonts/ipaexg.ttf"
 
-def generate_pdf(title: str, link: str, photo_path: str):
+def generate_pdf(title: str, link: str, photo_path: str, output_dir: str = None):
     """
     DIY作品のカタログPDFページを生成する関数です。
     
     :param title: 作品のタイトル
     :param link: 作品のリンク
     :param photo_path: 作品の写真のパス
+    :param output_dir: PDFの出力先ディレクトリ (オプション)
     """
     pdf = FPDF(unit="mm", format="A4")
     pdf.add_page()
@@ -93,6 +94,12 @@ def generate_pdf(title: str, link: str, photo_path: str):
         pdf.cell(0, 10, txt="QRコードの生成に失敗しました。", align="C", ln=True)
         pdf.set_text_color(0, 0, 0)
 
-    output_filename = f"{title.replace(' ', '_')}_catalog.pdf"
+    base_filename = f"{title.replace(' ', '_')}_catalog.pdf"
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        output_filename = os.path.join(output_dir, base_filename)
+    else:
+        output_filename = base_filename
+
     pdf.output(output_filename)
     return output_filename
