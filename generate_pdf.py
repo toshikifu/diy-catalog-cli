@@ -4,6 +4,8 @@ import qrcode
 import os
 import click
 
+FONT_PATH = "./fonts/ipaexg.ttf"
+
 def generate_pdf(title: str, link: str, photo_path: str):
     """
     DIY作品のカタログPDFページを生成する関数です。
@@ -15,7 +17,14 @@ def generate_pdf(title: str, link: str, photo_path: str):
     pdf = FPDF(unit="mm", format="A4")
     pdf.add_page()
 
-    pdf.set_font("Helvetica", "B", 24)
+    try:
+        pdf.add_font("IPAexGothic", "", FONT_PATH, uni=True)
+        pdf.set_font("IPAexGothic", "", 24)
+    except Exception as e:
+        click.echo(click.style(f"フォントの読み込みに失敗しました: {e}", fg="red"))
+        click.echo(click.style("デフォルトフォントを使用します。", fg="yellow"))
+        pdf.set_font("Helvetica", "", 24)
+
     pdf.set_text_color(24, 44, 61)
 
     pdf.cell(0, 20, text=title, ln=True, align="C")
@@ -47,7 +56,7 @@ def generate_pdf(title: str, link: str, photo_path: str):
         pdf.ln(new_height + 10)
     except Exception as e:
         click.echo(click.style(f"写真の読み込みに失敗しました: {e}", fg="red"))
-        pdf.set_font("Helvetica", "", 12)
+        pdf.set_font("IPAexGothic", "", 24)
         pdf.set_text_color(255, 0, 0)
         pdf.cell(0, 10, txt="写真の表示に失敗しました。", align="C", ln=True)
         pdf.set_text_color(0, 0, 0)
@@ -71,7 +80,7 @@ def generate_pdf(title: str, link: str, photo_path: str):
         pdf.image(qr_img_path, x=(pdf.w - qr_size) / 2, y=pdf.get_y(), w=qr_size, h=qr_size)
         pdf.ln(qr_size + 5)
 
-        pdf.set_font("Helvetica", "", 10)
+        pdf.set_font("IPAexGothic", "", 24)
         pdf.set_text_color(0, 0, 255)
         pdf.cell(0, 10, txt="作品のリンク:", align="C", ln=True)
         pdf.set_text_color(0, 0, 0)
@@ -79,7 +88,7 @@ def generate_pdf(title: str, link: str, photo_path: str):
         os.remove(qr_img_path)
     except Exception as e:
         click.echo(click.style(f"QRコードの生成に失敗しました: {e}", fg="red"))
-        pdf.set_font("Helvetica", "", 12)
+        pdf.set_font("IPAexGothic", "", 24)
         pdf.set_text_color(255, 0, 0)
         pdf.cell(0, 10, txt="QRコードの生成に失敗しました。", align="C", ln=True)
         pdf.set_text_color(0, 0, 0)
