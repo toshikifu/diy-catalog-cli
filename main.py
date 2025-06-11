@@ -30,15 +30,17 @@ def create_catalog_page():
         else:
             click.echo(f"写真ファイル： {expanded_path} が見つかりません", err=True)
 
-    click.echo("以下の情報でカタログページを作成します：")
-    click.echo(f"タイトル: {title}")
-    click.echo(f"リンク: {link}")
-    click.echo(f"写真パス: {expanded_path}")
-
     default_downloads_path = os.path.expanduser('~/Downloads')
     output_dir = click.prompt("出力先ディレクトリ (Output directory)", type=click.Path(), default=default_downloads_path)
     # Add a note about Windows compatibility if necessary, or implement more robust path detection.
     # For now, we'll rely on os.path.expanduser and click.Path validation.
+
+    click.echo("以下の情報でカタログページを作成します：")
+    click.echo(f"タイトル: {title}")
+    click.echo(f"リンク: {link}")
+    click.echo(f"写真パス: {expanded_path}")
+    click.echo(f"出力先ディレクトリ: {output_dir}")
+
 
     # ここでPDFページを作成する処理を追加します
     try:
