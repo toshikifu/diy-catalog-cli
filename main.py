@@ -18,15 +18,28 @@ def create_catalog_page():
         click.echo("リンクはhttp://またはhttps://で始まる必要があります", err=True)
         return
     
-    while True:
-        photo_path = click.prompt("作品の写真のパス：", type=str)
+    photo_paths = []
+    click.echo("写真を追加してください（最大6枚まで、空白でEnterを押すと終了）")
+    
+    while len(photo_paths) < 6:
+        prompt_text = f"写真のパス ({len(photo_paths)+1}/6)：" if len(photo_paths) == 0 else f"写真のパス ({len(photo_paths)+1}/6、空白で終了）："
+        photo_path = click.prompt(prompt_text, type=str, default="", show_default=False)
+        
+        if photo_path.strip() == "":
+            if len(photo_paths) == 0:
+                click.echo("少なくとも1枚の写真が必要です", err=True)
+                continue
+            else:
+                break
+        
         expanded_path = os.path.expanduser(photo_path)
         if not expanded_path.endswith(('.jpg', '.jpeg', '.png')):
             click.echo("写真のパスはjpg, jpeg, png形式である必要があります", err=True)
+            continue
 
         if os.path.exists(expanded_path):
-            click.echo(f"写真ファイル： {expanded_path} が見つかりました")
-            break
+            photo_paths.append(expanded_path)
+            click.echo(f"写真ファイル： {expanded_path} が追加されました")
         else:
             click.echo(f"写真ファイル： {expanded_path} が見つかりません", err=True)
 
@@ -38,14 +51,14 @@ def create_catalog_page():
     click.echo("以下の情報でカタログページを作成します：")
     click.echo(f"タイトル: {title}")
     click.echo(f"リンク: {link}")
-    click.echo(f"写真パス: {expanded_path}")
+    click.echo(f"写真パス: {', '.join(photo_paths)}")
     click.echo(f"出力先ディレクトリ: {output_dir}")
 
 
     # ここでPDFページを作成する処理を追加します
     try:
         click.echo("PDFページの作成処理を実行中...")
-        output_file = generate_pdf(title, link, expanded_path, output_dir)
+        output_file = generate_pdf(title, link, photo_paths, output_dir)
         click.echo(click.style(f"PDFページが作成されました: {output_file}", fg='green'))
     except Exception as e:
         click.echo(click.style(f"PDFページの作成中にエラーが発生しました: {e}", fg='red'))

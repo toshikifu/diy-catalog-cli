@@ -6,13 +6,13 @@ import click
 
 FONT_PATH = "./fonts/ipaexg.ttf"
 
-def generate_pdf(title: str, link: str, photo_path: str, output_dir: str = None):
+def generate_pdf(title: str, link: str, photo_paths: list, output_dir: str = None):
     """
     DIY作品のカタログPDFページを生成する関数です。
     
     :param title: 作品のタイトル
     :param link: 作品のリンク
-    :param photo_path: 作品の写真のパス
+    :param photo_paths: 作品の写真のパスのリスト
     :param output_dir: PDFの出力先ディレクトリ (オプション)
     """
     pdf = FPDF(unit="mm", format="A4")
@@ -31,36 +31,60 @@ def generate_pdf(title: str, link: str, photo_path: str, output_dir: str = None)
     pdf.cell(0, 20, text=title, ln=True, align="C")
     pdf.ln(10)
 
-    try:
-        img = Image.open(photo_path)
+    for i, photo_path in enumerate(photo_paths):
+        try:
+            img = Image.open(photo_path)
 
-        max_width = 180.0
-        max_height = 180.0
+            if len(photo_paths) == 1:
+                max_width = 180.0
+                max_height = 180.0
+            elif len(photo_paths) == 2:
+                max_width = 85.0
+                max_height = 120.0
+            else:
+                max_width = 55.0
+                max_height = 80.0
 
-        width, height = img.size
-        aspect_ratio = width / height
+            width, height = img.size
+            aspect_ratio = width / height
 
-        if width > height:
-            new_width = max_width
-            new_height = max_width / aspect_ratio
-            if new_height > max_height:
-                new_height = max_height
-                new_width = max_height * aspect_ratio
-        else:
-            new_height = max_height
-            new_width = max_height * aspect_ratio
-            if new_width > max_width:
+            if width > height:
                 new_width = max_width
                 new_height = max_width / aspect_ratio
+                if new_height > max_height:
+                    new_height = max_height
+                    new_width = max_height * aspect_ratio
+            else:
+                new_height = max_height
+                new_width = max_height * aspect_ratio
+                if new_width > max_width:
+                    new_width = max_width
+                    new_height = max_width / aspect_ratio
 
-        pdf.image(photo_path, x=(pdf.w - new_width) / 2, y=pdf.get_y(), w=new_width, h=new_height)
-        pdf.ln(new_height + 10)
-    except Exception as e:
-        click.echo(click.style(f"写真の読み込みに失敗しました: {e}", fg="red"))
-        pdf.set_font("IPAexGothic", "", 24)
-        pdf.set_text_color(255, 0, 0)
-        pdf.cell(0, 10, txt="写真の表示に失敗しました。", align="C", ln=True)
-        pdf.set_text_color(0, 0, 0)
+            if len(photo_paths) == 1:
+                x_pos = (pdf.w - new_width) / 2
+            elif len(photo_paths) == 2:
+                x_pos = 20 if i == 0 else pdf.w - new_width - 20
+            else:
+                cols = 3
+                col = i % cols
+                x_pos = 20 + col * (new_width + 10)
+
+            if i > 0 and len(photo_paths) > 2 and i % 3 == 0:
+                pdf.ln(new_height + 10)
+
+            current_y = pdf.get_y() if i == 0 or (len(photo_paths) > 2 and i % 3 == 0) else pdf.get_y()
+            pdf.image(photo_path, x=x_pos, y=current_y, w=new_width, h=new_height)
+
+            if i == len(photo_paths) - 1 or (len(photo_paths) > 2 and (i + 1) % 3 == 0):
+                pdf.ln(new_height + 10)
+
+        except Exception as e:
+            click.echo(click.style(f"写真の読み込みに失敗しました ({photo_path}): {e}", fg="red"))
+            pdf.set_font("IPAexGothic", "", 12)
+            pdf.set_text_color(255, 0, 0)
+            pdf.cell(0, 10, txt=f"写真 {i+1} の表示に失敗しました。", align="C", ln=True)
+            pdf.set_text_color(0, 0, 0)
 
     try:
         qr = qrcode.QRCode(
